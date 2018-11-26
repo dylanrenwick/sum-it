@@ -264,7 +264,7 @@ if (rawCode === '-f') {
 	}
 }
 const debug = process.argv[dI] && process.argv[dI] == '-v';
-//rawCode = rawCode.substring(1, rawCode.length - 1);
+rawCode = rawCode.replace(/^[\r\n]+|[\r\n]+$/g, '');
 let ast = lex(rawCode);
 if (!ast) process.exit(4);
 
