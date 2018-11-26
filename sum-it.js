@@ -76,19 +76,23 @@ function lex(code) {
 
 		let extraOffset = 0;
 		if (ip.peek(true) === '/') {
+			dbg('Weird offset flag set');
 			otherSide++;
 			extraOffset++;
 		}
 		while(ip.get() !== '/' && ip.x++ < code.width) {  }
 
 		let heightDiff = mtHeight - otherSide;
+		dbg('Main side is ' + (mtHeight + offset) + '(Height ' + mtHeight + ' plus offset ' + offset + ') and other side is ' + otherSide);
 		let mtSize = 0;
 		if (heightDiff < 0) {
-			return lexError(ip, code, 'Mountain other side is longer than main side!\n\tMain side is ' + mtHeight + ' (with ' + offset + ' offset), but other side is ' + otherSide);
+			return lexError(ip, code, 'Mountain other side is longer than main side!' + '\n\t'
+				 + 'Main side is ' + mtHeight + ' (with ' + offset + ' offset), but other side is ' + otherSide);
 		} else if (heightDiff === 0) {
 			mtSize = getSize(mtHeight);
 		} else {
-			mtSize = getSize(otherSide) + (otherSide * heightDiff);
+			if (mtHeight === 2 && otherSide === 1) mtSize = 1;
+			else mtSize = getSize(otherSide) + ((otherSide * heightDiff) + ((heightDiff + extraOffset) * (1 - extraOffset)));
 		}
 
 		return [mtSize, heightDiff + extraOffset];
@@ -199,10 +203,10 @@ function parse(ast) {
 			data.push(result);
 			dbg(data);
 		},
-	// 09: no-op
+	// 09: dupe
+		(data, codes) => { let v = safePop(data, 0); data.push(v); data.push(v); },
+	// 10: no-op
 		(data, codes) => 0,
-	// 10: dupe
-		(data, codes) => data.push(safePop(data, 0)),
 	// 11: no-op
 		(data, codes) => 0,
 	// 12: rot
@@ -214,8 +218,9 @@ function parse(ast) {
 		dbg('StackyTape is');
 		dbg(stackyTape);
 		dbg('and code to execute is ' + code);
-		dbg(opCodes[code]);
-		opCodes[code](stackyTape, ast);
+		func = (opCodes[code] ? opCodes[code] : opCodes[0]);
+		dbg(func);
+		func(stackyTape, ast);
 	}
 
 	dbg('StackyTape is');
@@ -264,7 +269,9 @@ if (rawCode === '-f') {
 	}
 }
 const debug = process.argv[dI] && process.argv[dI] == '-v';
+
 rawCode = rawCode.replace(/^[\r\n]+|[\r\n]+$/g, '');
+
 let ast = lex(rawCode);
 if (!ast) process.exit(4);
 
