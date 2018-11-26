@@ -256,7 +256,7 @@ if (rawCode === '-f') {
 	const fs = require('fs');
 	if (!process.argv[3]) { process.stderr.write('No file path was given!'); process.exit(2); }
 	try {
-		rawCode = fs.readFileSync(process.argv[3]);
+		rawCode = fs.readFileSync(process.argv[3], 'utf8');
 	} catch (e) {
 		process.stderr.write('Could not read file!\n');
 		process.stderr.write(e.message);
